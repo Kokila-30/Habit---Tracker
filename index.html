@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <link rel="stylesheet"
+          href="style.css">
+</head>
+<body>
+<div class="container">
+    <!-- TOP SECTION -->
+    <div class="top-section">
+        <div>
+            <label>Name</label>
+            <input type="text"
+                   id="username"
+                   placeholder="Enter your name">
+        </div>
+        <div>
+            <label>Month</label>
+            <input type="month"
+                   id="monthPicker">
+        </div>
+        <div class="quote-box">
+            <h2>
+                ✨ Don't give up on something , you dreamt of everyday !! ✨
+            </h2>
+        </div>
+    </div>
+    <!-- STATS -->
+    <div class="stats-box">
+        <h3>
+            Completed :
+            <span id="completedCount">0</span>
+        </h3>
+        <h3>
+            Progress :
+            <span id="progressPercent">0%</span>
+        </h3>
+    </div>
+    <!-- HABIT TRACKER -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr id="daysRow">
+                    <th>S.No</th>
+                    <th>Habits</th>
+                </tr>
+            </thead>
+            <tbody id="habitBody"></tbody>
+        </table>
+    </div>
+    <!-- SLEEP TRACKER -->
+    <div class="sleep-section">
+        <h2>😴 Sleep Graph Tracker</h2>
+        <div class="graph-container">
+            <svg id="sleepSVG"></svg>
+            <table id="sleepTable">
+                <thead>
+                    <tr id="sleepDays">
+                        <th>Hours</th>
+                    </tr>
+                </thead>
+                <tbody id="sleepBody"></tbody>
+            </table>
+        </div>
+    </div>
+    <!-- GOALS + NOTES -->
+    <div class="bottom-container">
+        <!-- GOALS -->
+        <div class="monthly-goals">
+            <h2>🎯 Monthly Goals</h2>
+            <div class="goal-row">
+                <input type="checkbox"
+                       id="goalCheck1">
+                <input type="text"
+                       id="goal1"
+                       placeholder="Enter Goal 1">
+            </div>
+            <div class="goal-row">
+                <input type="checkbox"
+                       id="goalCheck2">
+                <input type="text"
+                       id="goal2"
+                       placeholder="Enter Goal 2">
+            </div>
+            <div class="goal-row">
+                <input type="checkbox"
+                       id="goalCheck3">
+                <input type="text"
+                       id="goal3"
+                       placeholder="Enter Goal 3">
+            </div>
+            <div class="goal-row">
+                <input type="checkbox"
+                       id="goalCheck4">
+                <input type="text"
+                       id="goal4"
+                       placeholder="Enter Goal 4">
+            </div>
+            <div class="goal-row">
+                <input type="checkbox"
+                       id="goalCheck5">
+                <input type="text"
+                       id="goal5"
+                       placeholder="Enter Goal 5">
+            </div>
+        </div>
+        <!-- NOTES -->
+        <div class="notes-container">
+            <h2>📝 Notes</h2>
+            <input type="text"
+                   id="note1"
+                   placeholder="Write note here...">
+            <input type="text"
+                   id="note2"
+                   placeholder="Write note here...">
+            <input type="text"
+                   id="note3"
+                   placeholder="Write note here...">
+            <input type="text"
+                   id="note4"
+                   placeholder="Write note here...">
+            <input type="text"
+                   id="note5"
+                   placeholder="Write note here...">
+        </div>
+    </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
