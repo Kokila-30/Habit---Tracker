@@ -206,60 +206,158 @@ sleepLevels.forEach(level=>{
     sleepBody.appendChild(tr);
 });
 
-/* REFRESH GRAPH */
-function refreshSleepGraph()
-{
-    document .querySelectorAll(".sleep-dot")
+function refreshSleepGraph(){
+
+    document
+    .querySelectorAll(".sleep-dot")
     .forEach(dot=>{
+
         dot.classList.remove("active");
     });
+
     let points = [];
-    const svgRect = sleepSVG.getBoundingClientRect();
+
+    const graphContainer =
+    document.querySelector(
+        ".graph-container"
+    );
+
+    const containerRect =
+    graphContainer.getBoundingClientRect();
+
     sleepLevels.forEach((level,rowIndex)=>{
-        for(let day=1; day<=31; day++)
-            {
+
+        for(let day=1; day<=31; day++){
+
             if(data[`sleep_${day}`] == level){
-                const row = sleepBody.querySelectorAll("tr")[rowIndex];
-                const cell = row
+
+                const row =
+                sleepBody
+                .querySelectorAll("tr")[rowIndex];
+
+                const cell =
+                row
                 .querySelectorAll(".sleep-cell")[day - 1];
-                const dot = cell.querySelector(".sleep-dot");
+
+                const dot =
+                cell.querySelector(".sleep-dot");
+
                 dot.classList.add("active");
-                // PERFECT CENTER POSITION
-                const rect =  dot.getBoundingClientRect();
-                const x = rect.left -  svgRect.left + (rect.width / 2);
-                const y = rect.top -  svgRect.top + (rect.height / 2);
+
+                // MOBILE SAFE POSITION
+
+                const dotRect =
+                dot.getBoundingClientRect();
+
+                const x =
+                dotRect.left -
+                containerRect.left +
+                graphContainer.scrollLeft +
+                (dotRect.width / 2);
+
+                const y =
+                dotRect.top -
+                containerRect.top +
+                graphContainer.scrollTop +
+                (dotRect.height / 2);
+
                 points.push({
-                    x, y,day
+                    x,
+                    y,
+                    day
                 });
             }
         }
     });
+
     points.sort((a,b)=>a.day-b.day);
+
     drawSleepLine(points);
 }
-
-
 /* DRAW GRAPH */
-function drawSleepLine(points)
-{
+function drawSleepLine(points){
+
     sleepSVG.innerHTML = "";
-    const table = document.getElementById("sleepTable");
-    sleepSVG.setAttribute( "width", table.scrollWidth );
-    sleepSVG.setAttribute( "height", table.scrollHeight  );
-    sleepSVG.setAttribute(  "viewBox", `0 0 ${table.scrollWidth} ${table.scrollHeight}` );
-    if(points.length < 2) return;
+
+    const graphContainer =
+    document.querySelector(
+        ".graph-container"
+    );
+
+    const table =
+    document.getElementById(
+        "sleepTable"
+    );
+
+    // MOBILE WIDTH FIX
+
+    sleepSVG.setAttribute(
+        "width",
+        table.scrollWidth
+    );
+
+    sleepSVG.setAttribute(
+        "height",
+        table.scrollHeight
+    );
+
+    sleepSVG.style.width =
+    table.scrollWidth + "px";
+
+    sleepSVG.style.height =
+    table.scrollHeight + "px";
+
+    if(points.length < 2){
+        return;
+    }
+
     let d = "";
-    points.forEach((point,index)=>{if(index === 0)
-        {
+
+    points.forEach((point,index)=>{
+
+        if(index === 0){
+
             d += `M ${point.x} ${point.y}`;
+
         }else{
+
             d += ` L ${point.x} ${point.y}`;
         }
     });
 
-    const path = document.createElementNS( "http://www.w3.org/2000/svg","path" );
+    const path =
+    document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+    );
+
     path.setAttribute("d", d);
-    path.setAttribute( "class", "sleep-line" );
+
+    path.setAttribute(
+        "fill",
+        "none"
+    );
+
+    path.setAttribute(
+        "stroke",
+        "#8338ec"
+    );
+
+    path.setAttribute(
+        "stroke-width",
+        "4"
+    );
+
+    path.setAttribute(
+        "stroke-linecap",
+        "round"
+    );
+
+    path.setAttribute(
+        "stroke-linejoin",
+        "round"
+    );
+
     sleepSVG.appendChild(path);
 }
 
@@ -284,4 +382,12 @@ window.addEventListener("load",()=>{
     }
     // LOAD DATA
     loadData();
+});
+// REDRAW ON MOBILE RESIZE
+
+window.addEventListener(
+    "resize",
+    ()=>{
+
+    refreshSleepGraph();
 });
