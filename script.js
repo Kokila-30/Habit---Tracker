@@ -7,24 +7,20 @@ const habitBody = document.getElementById("habitBody");
 let currentKey = "habitTracker_default";
 let data = {};
 
-/* 🔴 FIX: USER + MONTH STORAGE (STABLE) */
-const username = document.getElementById("username");
-const monthPicker = document.getElementById("monthPicker");
-
-/* SAVE KEY */
+/* STORAGE KEY */
 function generateStorageKey() {
-    const name = username.value.trim() || "guest";
-    const month = monthPicker.value || "default";
-    return `habitTracker_${name}_${month}`;
+    const username = document.getElementById("username")?.value?.trim() || "guest";
+    const month = document.getElementById("monthPicker")?.value || "default";
+    return `habitTracker_${username}_${month}`;
 }
 
-/* SAVE DATA */
+/* SAVE */
 function saveData() {
     currentKey = generateStorageKey();
     localStorage.setItem(currentKey, JSON.stringify(data));
 }
 
-/* LOAD DATA */
+/* LOAD */
 function loadData() {
     currentKey = generateStorageKey();
     const saved = localStorage.getItem(currentKey);
@@ -39,13 +35,13 @@ for (let i = 1; i <= days; i++) {
     daysRow.appendChild(th);
 }
 
-/* HABITS */
+/* HABITS TABLE */
 for (let row = 0; row < rows; row++) {
-
     const tr = document.createElement("tr");
 
     const serialTd = document.createElement("td");
     serialTd.innerText = row + 1;
+    serialTd.classList.add("serial-number");
     tr.appendChild(serialTd);
 
     const tdName = document.createElement("td");
@@ -64,7 +60,6 @@ for (let row = 0; row < rows; row++) {
     tr.appendChild(tdName);
 
     for (let day = 1; day <= days; day++) {
-
         const td = document.createElement("td");
         const box = document.createElement("div");
 
@@ -86,16 +81,16 @@ for (let row = 0; row < rows; row++) {
     habitBody.appendChild(tr);
 }
 
-/* 🔴 FIXED USER + MONTH INPUT (IMPORTANT) */
+/* USER + MONTH */
+const username = document.getElementById("username");
+const monthPicker = document.getElementById("monthPicker");
+
 username.addEventListener("input", () => {
     localStorage.setItem("lastUsername", username.value);
-    currentKey = generateStorageKey();
-    loadData();
 });
 
 monthPicker.addEventListener("change", () => {
     localStorage.setItem("lastMonth", monthPicker.value);
-    currentKey = generateStorageKey();
     loadData();
 });
 
@@ -111,8 +106,6 @@ function updateStats() {
 
 /* REFRESH UI */
 function refreshUI() {
-
-    /* 🔴 FIX: stable load */
     username.value = localStorage.getItem("lastUsername") || "";
     monthPicker.value = localStorage.getItem("lastMonth") || "";
 
@@ -122,9 +115,7 @@ function refreshUI() {
         habitInputs[row].value = data[`habit_${row}`] || "";
 
         for (let day = 1; day <= days; day++) {
-
             const key = `habit_${row}_${day}`;
-
             const tableRow = habitBody.children[row];
             const cell = tableRow.children[day + 1];
             const box = cell.querySelector(".check-box");
@@ -148,13 +139,15 @@ function refreshUI() {
         document.getElementById(`note${i}`).value = data[`note_${i}`] || "";
     }
 
-    refreshSleepGraph();
+    /* 🔥 FIX: delay graph render (IMPORTANT FOR VERCEL/MOBILE) */
     updateStats();
+    setTimeout(() => {
+        refreshSleepGraph();
+    }, 80);
 }
 
 /* GOALS + NOTES */
 for (let i = 1; i <= 5; i++) {
-
     document.getElementById(`goal${i}`).addEventListener("input", (e) => {
         data[`goal_${i}`] = e.target.value;
         saveData();
@@ -171,7 +164,121 @@ for (let i = 1; i <= 5; i++) {
     });
 }
 
-/* INITIAL LOAD */
+/* SLEEP TRACKER */
+const sleepLevels = [9, 8, 7, 6, 5];
+const sleepDays = document.getElementById("sleepDays");
+const sleepBody = document.getElementById("sleepBody");
+const sleepSVG = document.getElementById("sleepSVG");
+
+/* DAYS */
+for (let day = 1; day <= 31; day++) {
+    const th = document.createElement("th");
+    th.innerText = day;
+    sleepDays.appendChild(th);
+}
+
+/* ROWS */
+sleepLevels.forEach(level => {
+    const tr = document.createElement("tr");
+
+    const label = document.createElement("td");
+    label.innerText = level + " hrs";
+    label.classList.add("sleep-label");
+    tr.appendChild(label);
+
+    for (let day = 1; day <= 31; day++) {
+        const td = document.createElement("td");
+        td.classList.add("sleep-cell");
+
+        const dot = document.createElement("div");
+        dot.classList.add("sleep-dot");
+
+        dot.addEventListener("click", () => {
+            data[`sleep_${day}`] = level;
+            saveData();
+            refreshSleepGraph();
+        });
+
+        td.appendChild(dot);
+        tr.appendChild(td);
+    }
+
+    sleepBody.appendChild(tr);
+});
+
+/* GRAPH */
+function refreshSleepGraph() {
+    document.querySelectorAll(".sleep-dot").forEach(dot => {
+        dot.classList.remove("active");
+    });
+
+    let points = [];
+
+    const graphContainer = document.querySelector(".graph-container");
+    const containerRect = graphContainer.getBoundingClientRect();
+
+    sleepLevels.forEach((level, rowIndex) => {
+        for (let day = 1; day <= 31; day++) {
+            if (data[`sleep_${day}`] == level) {
+
+                const row = sleepBody.querySelectorAll("tr")[rowIndex];
+                const cell = row.querySelectorAll(".sleep-cell")[day - 1];
+                const dot = cell.querySelector(".sleep-dot");
+
+                dot.classList.add("active");
+
+                const dotRect = dot.getBoundingClientRect();
+
+                const x = dotRect.left - containerRect.left + graphContainer.scrollLeft + (dotRect.width / 2);
+                const y = dotRect.top - containerRect.top + graphContainer.scrollTop + (dotRect.height / 2);
+
+                points.push({ x, y, day });
+            }
+        }
+    });
+
+    points.sort((a, b) => a.day - b.day);
+    drawSleepLine(points);
+}
+
+/* DRAW LINE */
+function drawSleepLine(points) {
+
+    sleepSVG.innerHTML = "";
+
+    const table = document.getElementById("sleepTable");
+
+    /* 🔥 FIX: safe SVG size (prevents missing graph) */
+    const width = Math.max(table.scrollWidth, 1200);
+    const height = Math.max(table.scrollHeight, 400);
+
+    sleepSVG.setAttribute("width", width);
+    sleepSVG.setAttribute("height", height);
+
+    sleepSVG.style.width = width + "px";
+    sleepSVG.style.height = height + "px";
+
+    if (points.length < 2) return;
+
+    let d = "";
+
+    points.forEach((p, i) => {
+        d += i === 0 ? `M ${p.x} ${p.y}` : ` L ${p.x} ${p.y}`;
+    });
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "#8338ec");
+    path.setAttribute("stroke-width", "4");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+
+    sleepSVG.appendChild(path);
+}
+
+/* INIT */
 window.addEventListener("load", () => {
     const savedUsername = localStorage.getItem("lastUsername");
     const savedMonth = localStorage.getItem("lastMonth");
